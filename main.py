@@ -22,6 +22,7 @@ if __name__ == "__main__":
     server.start()
 
 """
+https://wiki.mchobby.be/index.php?title=FEATHER-CHARGER-FICHIER-MICROPYTHON
 ampy -p COM4 put client.py /CameraMatcher/client.py
 
 import sys

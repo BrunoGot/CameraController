@@ -1,4 +1,5 @@
-# https://micronote.tech/2020/07/I2C-Bus-with-a-NodeMCU-and-MicroPython/
+#thanks to https://micronote.tech/2020/07/I2C-Bus-with-a-NodeMCU-and-MicroPython/
+
 from machine import Pin, I2C
 import network
 import socket
@@ -8,9 +9,9 @@ class Kernel():
 
     def __init__(self):
         # global varsA
-        self.ssid = "SFR_3088"#"Livebox-E8A6"  # "TP-LINK_B02DB9"
-        self.mdp = "pryd3quimaxfaynjagjo"#"F24C5464A6C91C179CF2A41775"  # bmadekxcts8gmn2zbzlaayei6wf"
-        self.target_ip = "192.168.1.25" #"192.168.1.38"  # wlan.ifconfig()[0]
+        self.ssid = "S23"#"SFR_3088"#"Livebox-E8A6"  # "TP-LINK_B02DB9"
+        self.mdp = "12345678"#"pryd3quimaxfaynjagjo"#"F24C5464A6C91C179CF2A41775"  # bmadekxcts8gmn2zbzlaayei6wf"
+        self.target_ip = "192.168.43.50" #"192.168.1.38"  # wlan.ifconfig()[0]
         self.port = 10086
 
     def read_two_byte(self, idc_bus, chip_adr, reg_adr_1, reg_adr_2, bytes):
@@ -37,6 +38,9 @@ class Kernel():
         wlan.connect(ssid, mdp)
         while (wlan.isconnected() == False):
             time.sleep(0.1)
+            print("\033c")
+            print("try to connect")
+        print("Connected to ssid : "+ssid)
 
     def init_socket(self):
         """define the socket of the client"""
@@ -53,6 +57,15 @@ class Kernel():
         print(str(i2c.scan()))
         # set all the PWR_MGMT_1 to 0 to make sure the device is not in sleep mode
         i2c.writeto_mem(0x68, 0x6B, bytes([0]))
+
+        ##########WIFI###########
+        # connect to access point
+        self.connect_to_access_point(self.ssid, self.mdp)
+        #########Socket##############
+        # open socket and send datas :
+        self.socket = self.init_socket()
+        #########################
+
         while (True):
             lsbg = 16384.0  # lsb sensitvity number defined from the range table of the accelerometer
             accel_x = self.read_two_byte(i2c, 0x68, 0x3b, 0x3c, 1) / lsbg
@@ -64,17 +77,8 @@ class Kernel():
             gyro_y = self.read_two_byte(i2c, 0x68, 0x45, 0x46, 1) / lsbds
             gyro_z = self.read_two_byte(i2c, 0x68, 0x47, 0x48, 1) / lsbds
 
-            datas = str(accel_x)
-
-            ##########WIFI###########
-            # connect to access point
-            self.connect_to_access_point(self.ssid, self.mdp)
-
-            #########################
-
-            #########Socket##############
-            # open socket and send datas :
-            self.socket = self.init_socket()
+            datas = str(accel_x)+","+str(accel_y)+","+str(accel_z)+","+str(gyro_x)+","+str(gyro_y)+","+str(gyro_z) #smell todo : define a buffer protocol object to send these 3 values
+            print(datas)
             self.send_datas(datas)
             #########################
 

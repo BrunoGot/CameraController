@@ -55,6 +55,6 @@ class HoudiniSender():
         self.activate_server(self.ip, self.port)
 
 if __name__ == "__main__":
-    ip = "192.168.1.38"
+    ip = "192.168.1.50"
     port = 10086
     hs = HoudiniSender(ip, port)
