@@ -23,13 +23,13 @@ class Server():
         hou_port = 50556  # port of houdini pipe
         hou_sender = hou_pipe.HoudiniSender(hou_ip, hou_port)
         hou_sender.run()
-        channelCount = 1
-        samples = [4.2]
+        channelCount = 3
         while True:
             #print("received message: %s " % data)
             data = self.controller.get_datas()
             # compute datas
-            samples = [data]
+            samples = [data.x,data.y,data.z]
+            print("send datas to houdini : " + str(data.z))
             hou_sender.sendCurrentValues(channelCount, samples)
             # msg = "hello world"
 
@@ -60,8 +60,11 @@ class ControllerHandler():
     def split_datas_to_vector(self):
         """split the datas in accel and gyro vectors"""
         datas = self.receiv_datas()
-        accel = Vector(datas[0],datas[1],datas[2])
-        gyro = Vector(datas[3],datas[4],datas[5])
+        accel = Vector(0,0,0)
+        gyro = Vector(0,0,0)
+        if len(datas)>=6:
+            accel = Vector(datas[0],datas[1],datas[2])
+            gyro = Vector(datas[3],datas[4],datas[5])
         return (accel, gyro)
 
     def print_controller_datas(self, data):
@@ -70,17 +73,17 @@ class ControllerHandler():
     def smooth_datas(self, new_data,current_data, old_data):
         """ take the new received data, the cureent data like self.__accel, and the buffered datas, make interpolation with it to smooth the datas
         and return an array with the updated values"""
-
+        precision =2
         #interpolate with the old data current data and new data
         #x
         new_data.x = (old_data.x + current_data.x + new_data.x) / 3
-        new_data.x = round(new_data.x, 1)
+        new_data.x = round(new_data.x, precision)
         #y
         new_data.y = (old_data.y + current_data.y + new_data.y) / 3
-        new_data.y = round(new_data.y, 1)
+        new_data.y = round(new_data.y, precision)
         #z
         new_data.z = (old_data.z + current_data.z + new_data.z) / 3
-        new_data.z = round(new_data.z, 1)
+        new_data.z = round(new_data.z, precision)
 
         old_data = current_data
         current_data = new_data
